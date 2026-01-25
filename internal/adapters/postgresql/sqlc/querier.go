@@ -12,8 +12,11 @@ type Querier interface {
 	CreateOrder(ctx context.Context, customerID int64) (Order, error)
 	CreateOrderItem(ctx context.Context, arg CreateOrderItemParams) (OrderItem, error)
 	CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error)
+	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteProduct(ctx context.Context, id int64) error
 	FindProductById(ctx context.Context, id int64) (Product, error)
+	FindUserById(ctx context.Context, id int64) (User, error)
+	FindUserByUsername(ctx context.Context, username string) (User, error)
 	ListProducts(ctx context.Context) ([]Product, error)
 	UpdateProductQuantity(ctx context.Context, arg UpdateProductQuantityParams) (Product, error)
 }

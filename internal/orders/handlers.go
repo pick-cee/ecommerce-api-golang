@@ -1,10 +1,12 @@
 package orders
 
 import (
+	"errors"
 	"log"
 	"net/http"
 
 	"github.com/pick-cee/go-ecommerce-api/internal/json"
+	"github.com/pick-cee/go-ecommerce-api/internal/users"
 )
 
 type handler struct {
@@ -26,15 +28,22 @@ func (h *handler) PlaceOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user, ok := users.GetUserFromContext(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+    return
+	}
+	
+	tempOrder.CustomerID = user.ID
 	createdOrder, err := h.service.PlaceOrder(r.Context(), tempOrder)
 	if err != nil {
 		log.Println(err)
 
-		if err == ProductNotFoundError {
+		if errors.Is(err, ProductNotFoundError) {
 			http.Error(w, err.Error(), http.StatusNotFound)
 		}
 
-		if err == ProductNoStockError {
+		if errors.Is(err, ProductNoStockError) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 

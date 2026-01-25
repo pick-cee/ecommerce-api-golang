@@ -11,6 +11,7 @@ import (
 	repo "github.com/pick-cee/go-ecommerce-api/internal/adapters/postgresql/sqlc"
 	"github.com/pick-cee/go-ecommerce-api/internal/orders"
 	"github.com/pick-cee/go-ecommerce-api/internal/products"
+	"github.com/pick-cee/go-ecommerce-api/internal/users"
 )
 
 func (app *application) mount() http.Handler {
@@ -32,13 +33,18 @@ func (app *application) mount() http.Handler {
 	productsHandler := products.NewHandler(productsService)
 
 	r.Get("/products", productsHandler.ListProducts)
-	r.Post("/products", productsHandler.CreateProduct)
-	r.Patch("/products/{id}", productsHandler.UpdateProductQuantity)
-	r.Delete("/products/{id}", productsHandler.DeleteProduct)
+	r.With(users.AuthMiddleware).Post("/products", productsHandler.CreateProduct)
+	r.With(users.AuthMiddleware).Patch("/products/{id}", productsHandler.UpdateProductQuantity)
+	r.With(users.AuthMiddleware).Delete("/products/{id}", productsHandler.DeleteProduct)
 
 	ordersService := orders.NewService(repo.New(app.db), app.db)
 	ordersHandler := orders.NewHandler(ordersService)
-	r.Post("/orders", ordersHandler.PlaceOrder)
+	r.With(users.AuthMiddleware).Post("/orders", ordersHandler.PlaceOrder)
+
+	usersService := users.NewService(repo.New(app.db), app.db)
+	usersHandler := users.NewHandler(usersService)
+	r.Post("/users/signup", usersHandler.CreateUser)
+	r.Post("/users/signin", usersHandler.LoginUser)
 
 	return r
 }

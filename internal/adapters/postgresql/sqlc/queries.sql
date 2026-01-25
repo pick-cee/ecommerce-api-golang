@@ -26,3 +26,13 @@ VALUES ($1, $2, $3) RETURNING *;
 -- name: DeleteProduct :exec
 DELETE FROM products
 WHERE id = $1;
+
+-- name: CreateUser :one
+INSERT INTO users (name, username, password)
+VALUES ($1, $2, $3) RETURNING *;
+
+-- name: FindUserById :one
+SELECT * FROM users WHERE id = $1;
+
+-- name: FindUserByUsername :one
+SELECT * FROM users WHERE username = $1;

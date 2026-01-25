@@ -76,6 +76,30 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (P
 	return i, err
 }
 
+const createUser = `-- name: CreateUser :one
+INSERT INTO users (name, username, password)
+VALUES ($1, $2, $3) RETURNING id, name, username, password, created_at
+`
+
+type CreateUserParams struct {
+	Name     string `json:"name"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, createUser, arg.Name, arg.Username, arg.Password)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Username,
+		&i.Password,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const deleteProduct = `-- name: DeleteProduct :exec
 DELETE FROM products
 WHERE id = $1
@@ -98,6 +122,40 @@ func (q *Queries) FindProductById(ctx context.Context, id int64) (Product, error
 		&i.Name,
 		&i.PriceInCents,
 		&i.Quantity,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const findUserById = `-- name: FindUserById :one
+SELECT id, name, username, password, created_at FROM users WHERE id = $1
+`
+
+func (q *Queries) FindUserById(ctx context.Context, id int64) (User, error) {
+	row := q.db.QueryRow(ctx, findUserById, id)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Username,
+		&i.Password,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const findUserByUsername = `-- name: FindUserByUsername :one
+SELECT id, name, username, password, created_at FROM users WHERE username = $1
+`
+
+func (q *Queries) FindUserByUsername(ctx context.Context, username string) (User, error) {
+	row := q.db.QueryRow(ctx, findUserByUsername, username)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Username,
+		&i.Password,
 		&i.CreatedAt,
 	)
 	return i, err
