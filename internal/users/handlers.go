@@ -23,7 +23,7 @@ func (h *handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	err := json.Read(r, &tempUser)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		json.WriteError(w, http.StatusBadRequest, err, err.Error())
 		return
 	}
 
@@ -31,7 +31,8 @@ func (h *handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Println(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		json.WriteError(w, http.StatusInternalServerError, err, err.Error())
+		return
 	}
 
 	json.Write(w, http.StatusCreated, createdUser)
@@ -43,7 +44,7 @@ func (h *handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	err := json.Read(r, &tempUser)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		json.WriteError(w, http.StatusBadRequest, err, err.Error())
 		return
 	}
 
@@ -51,7 +52,8 @@ func (h *handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Println(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		json.WriteError(w, http.StatusInternalServerError, err, err.Error())
+		return
 	}
 
 	json.Write(w, http.StatusCreated, loginUser)

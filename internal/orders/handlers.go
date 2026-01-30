@@ -24,7 +24,7 @@ func (h *handler) PlaceOrder(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.Read(r, &tempOrder); err != nil{
 		log.Println(err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		json.WriteError(w, http.StatusBadRequest, err, err.Error())
 		return
 	}
 
@@ -41,13 +41,16 @@ func (h *handler) PlaceOrder(w http.ResponseWriter, r *http.Request) {
 
 		if errors.Is(err, ProductNotFoundError) {
 			http.Error(w, err.Error(), http.StatusNotFound)
+			return
 		}
 
 		if errors.Is(err, ProductNoStockError) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
 		}
 
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	json.Write(w, http.StatusCreated, createdOrder)

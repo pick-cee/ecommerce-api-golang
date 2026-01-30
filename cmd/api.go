@@ -17,6 +17,8 @@ import (
 func (app *application) mount() http.Handler {
 	r := chi.NewRouter()
 
+	repository := repo.New(app.db)
+
 	// Middlewares
 	r.Use(middleware.RequestID) // important for Rate limiting
 	r.Use(middleware.RealIP) // important for rate limiting, tracking and analytics
@@ -29,7 +31,7 @@ func (app *application) mount() http.Handler {
 		w.Write([]byte("All good!"))
 	})
 
-	productsService := products.NewService(repo.New(app.db), app.db)
+	productsService := products.NewService(repository, app.db)
 	productsHandler := products.NewHandler(productsService)
 
 	r.Get("/products", productsHandler.ListProducts)
@@ -37,11 +39,11 @@ func (app *application) mount() http.Handler {
 	r.With(users.AuthMiddleware).Patch("/products/{id}", productsHandler.UpdateProductQuantity)
 	r.With(users.AuthMiddleware).Delete("/products/{id}", productsHandler.DeleteProduct)
 
-	ordersService := orders.NewService(repo.New(app.db), app.db)
+	ordersService := orders.NewService(repository, app.db)
 	ordersHandler := orders.NewHandler(ordersService)
 	r.With(users.AuthMiddleware).Post("/orders", ordersHandler.PlaceOrder)
 
-	usersService := users.NewService(repo.New(app.db), app.db)
+	usersService := users.NewService(repository, app.db)
 	usersHandler := users.NewHandler(usersService)
 	r.Post("/users/signup", usersHandler.CreateUser)
 	r.Post("/users/signin", usersHandler.LoginUser)

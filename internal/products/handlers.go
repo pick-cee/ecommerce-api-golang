@@ -24,7 +24,7 @@ func (h *handler) ListProducts(w http.ResponseWriter, r *http.Request) {
 	products, err := h.service.ListProducts(r.Context())
 	if err != nil {
 		log.Println(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		json.WriteError(w, http.StatusInternalServerError, err, err.Error())
 		return
 	}
 
@@ -36,16 +36,18 @@ func (h *handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.Read(r, &tempProduct); err != nil {
 		log.Println(err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		json.WriteError(w, http.StatusBadRequest, err, err.Error())
 		return
 	}
 	createdProduct, err := h.service.CreateProduct(r.Context(), tempProduct)
 
 	if err != nil {
 		if err == InvalidProductRequest {
-			http.Error(w, "", http.StatusBadRequest)
+			json.WriteError(w, http.StatusBadRequest, err, err.Error())
+			return
 		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	json.Write(w, http.StatusCreated, createdProduct)
@@ -55,7 +57,7 @@ func (h *handler) UpdateProductQuantity(w http.ResponseWriter, r *http.Request) 
 	var idStr = chi.URLParam(r, "id")
 	productId, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "Invalid product id", http.StatusBadRequest)
+		json.WriteError(w, http.StatusBadRequest, err, err.Error())
 		return
 	}
 
@@ -63,14 +65,15 @@ func (h *handler) UpdateProductQuantity(w http.ResponseWriter, r *http.Request) 
 
 	if err := json.Read(r, &quantity); err != nil {
 		log.Println(err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		json.WriteError(w, http.StatusBadRequest, err, err.Error())
 		return
 	}
 
 	updatedProduct, err := h.service.UpdateProductQuantity(r.Context(), productId, quantity.Quantity)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		json.WriteError(w, http.StatusInternalServerError, err, err.Error())
+		return
 	}
 
 	json.Write(w, http.StatusOK, updatedProduct)
@@ -80,15 +83,16 @@ func (h *handler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	var idStr = chi.URLParam(r, "id")
 	productId, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "Invalid product id", http.StatusBadRequest)
+		json.WriteError(w, http.StatusBadRequest, err, err.Error())
 		return
 	}
 
 	err = h.service.DeleteProduct(r.Context(), productId)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		json.WriteError(w, http.StatusInternalServerError, err, err.Error())
+		return
 	}
 
-	json.Write(w, http.StatusOK, "Product deleted")
+	json.Write(w, http.StatusOK, "Product deleted successfully")
 }
